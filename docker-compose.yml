@@ -1,0 +1,51 @@
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: taxi_booking
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    networks:
+      - taxi_network
+  redis:
+    image: redis:latest
+    container_name: redis_cache
+    restart: always
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - taxi_network
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq_service
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: rmq_user
+      RABBITMQ_DEFAULT_PASS: rmq_password
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"    # RabbitMQ AMQP Port
+      - "15672:15672"  # RabbitMQ Web UI
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+    networks:
+      - taxi_network
+
+volumes:
+  mysql_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  taxi_network:
+    driver: bridge

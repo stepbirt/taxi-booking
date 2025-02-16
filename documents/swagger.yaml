@@ -1,0 +1,146 @@
+openapi: 3.0.0
+info:
+  title: Taxi Booking System API
+  version: 1.0.0
+  description: API documentation for the Taxi Booking System
+servers:
+  - url: http://localhost:3000/api
+paths:
+  /bookings/instant:
+    post:
+      summary: Create an instant booking
+      tags:
+        - Booking Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                pickupLocation:
+                  type: string
+                destinationLocation:
+                  type: string
+              required:
+                - userId
+                - pickupLocation
+                - destinationLocation
+      responses:
+        '201':
+          description: Booking created successfully
+          content:
+            application/json:
+              example:
+                bookingId: '12345'
+                status: pending
+                message: Your booking is pending a taxi assignment.
+        '400':
+          description: Invalid input
+  /bookings/schedule:
+    post:
+      summary: Create a scheduled booking
+      tags:
+        - Booking Service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                pickupLocation:
+                  type: string
+                destinationLocation:
+                  type: string
+                scheduledTime:
+                  type: string
+                  format: date-time
+              required:
+                - userId
+                - pickupLocation
+                - destinationLocation
+                - scheduledTime
+      responses:
+        '201':
+          description: Scheduled booking created
+          content:
+            application/json:
+              example:
+                bookingId: '67890'
+                status: scheduled
+                message: Your booking is scheduled.
+        '400':
+          description: Invalid input
+  /bookings/cancel/{id}:
+    put:
+      summary: Cancel a booking
+      tags:
+        - Booking Service
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Booking cancelled
+          content:
+            application/json:
+              example:
+                status: cancelled
+                message: Your booking has been cancelled.
+  /webhook/taxi-update:
+    post:
+      summary: Process taxi arrivals or departures (Secured)
+      tags:
+        - Webhook Service
+      parameters:
+        - in: header
+          name: X-Signature
+          schema:
+            type: string
+          description: "HMAC SHA256 signature of the request body"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                taxiId:
+                  type: string
+                location:
+                  type: string
+                status:
+                  type: string
+                  enum:
+                    - arrived
+                    - departed
+                timestamp:
+                  type: string
+                  format: date-time
+              required:
+                - taxiId
+                - location
+                - status
+                - timestamp
+      responses:
+        '200':
+          description: Taxi status updated successfully
+          content:
+            application/json:
+              example:
+                message: "Taxi TX123 has arrived at Parking Lane A."
+        '400':
+          description: Invalid webhook data
+        '401':
+          description: Unauthorized (Invalid Signature)
+        '422':
+          description: Unprocessable Entity (Invalid JSON format)
+    
